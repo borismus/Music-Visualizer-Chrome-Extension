@@ -1,0 +1,12 @@
+{
+  "name": "Mini Music Visualizer",
+  "version": "1.0",
+  "description": "A very small music visualizer inside a browser action using <canvas> and the web audio API",
+  "browser_action": {
+    "default_title": "Play/pause"
+  },
+  "background_page": "background.html",
+  "permissions": [
+    "tabs"
+  ]
+}
