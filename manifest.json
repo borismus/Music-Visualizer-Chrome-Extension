@@ -1,5 +1,5 @@
 {
-  "name": "Mini Music Visualizer",
+  "name": "Music Visualizer Button",
   "version": "1.0",
   "description": "A very small music visualizer inside a browser action using <canvas> and the web audio API",
   "browser_action": {
