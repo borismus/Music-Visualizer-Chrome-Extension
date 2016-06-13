@@ -5,22 +5,17 @@ var buffer;
 var freqs;
 var timer;
 var isPlaying = false;
+var startedAt = 0.0, pausedAt = 0.0;
 
 document.addEventListener('DOMContentLoaded', function() {
   // If web audio API is disabled, redirect to an instruction page
-  if (! window.webkitAudioContext) {
+  if (! window.AudioContext) {
     chrome.tabs.create({url: 'webaudio.html'});
     return;
   }
 
   // Start off by initializing some web audio API goodness
-  context = new webkitAudioContext();
-  source = context.createBufferSource();
-  analyser = context.createAnalyser();
-
-  // Connect graph
-  source.connect(analyser);
-  analyser.connect(context.destination);
+  context = new AudioContext();
   loadAudioBuffer('song.mp3');
 
   // Whenever the page action is clicked, toggle playback
@@ -31,19 +26,38 @@ document.addEventListener('DOMContentLoaded', function() {
 function togglePlayback() {
   if (isPlaying) {
     // Stop playback
-    source.buffer = null;
+    source.stop();
+    pausedAt = Date.now() - startedAt;
+    isPlaying = false;
+
     // Stop drawing the music visualizer
     clearInterval(timer);
     drawPaused();
   } else {
-    // Start playback
-    source.noteOn(0.0);
+    source = context.createBufferSource();
+    analyser = context.createAnalyser();
+    // Connect graph
+    source.connect(analyser);
+    analyser.connect(context.destination);
+
     source.buffer = buffer;
+    source.looping = true;
+    freqs = new Uint8Array(analyser.frequencyBinCount);
+
+    // Start playback
+    if (pausedAt) {
+      startedAt = Date.now() - pausedAt;
+      source.start(0.0, pausedAt / 1000);
+    } else {
+      startedAt = Date.now();
+      source.start(0.0);
+    }
+    isPlaying = true;
+
     // Start the music visualizer timer
     // Note: requestAnimationFrame doesn't work in background pages!
     timer = setInterval(draw, 17);
   }
-  isPlaying = !isPlaying;
 }
 
 function loadAudioBuffer(url) {
@@ -53,13 +67,12 @@ function loadAudioBuffer(url) {
   request.responseType = "arraybuffer";
 
   request.onload = function() {
-    buffer = context.createBuffer(request.response, false);
-    source.buffer = buffer;
-    source.looping = true;
-    freqs = new Uint8Array(analyser.frequencyBinCount);
+    context.decodeAudioData(request.response, function(decodedBuffer) {
+      buffer = decodedBuffer;
 
-    // Start with the icon paused
-    drawPaused(true);
+      // Start with the icon paused
+      drawPaused(true);
+    });
   }
 
   request.send();
