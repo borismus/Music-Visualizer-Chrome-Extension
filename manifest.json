@@ -1,11 +1,12 @@
 {
+  "manifest_version": 2,
   "name": "Music Visualizer Button",
-  "version": "1.0",
+  "version": "1.1",
   "description": "A very small music visualizer inside a browser action using <canvas> and the web audio API",
   "browser_action": {
     "default_title": "Play/pause"
   },
-  "background_page": "background.html",
+  "background": {"page": "background.html"},
   "permissions": [
     "tabs"
   ]
